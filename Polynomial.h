@@ -69,7 +69,7 @@ std::ostream& operator << (std::ostream& os, Polynomial &p) {
 
 // }
 
-inline int max(int a, int b) {
+int max(int a, int b) {
     return a ? a > b : b;
 }
 
@@ -93,9 +93,25 @@ Polynomial operator - (Polynomial &p, Polynomial &q) {
     return polynomial;
 }
 
-// Polynomial operator * (Polynomial &p, Polynomial &q) {
+Polynomial operator * (Polynomial &p, Polynomial &q) {
+    int degree = p.degree() + q.degree();
+    Polynomial polynomial(degree);
 
-// }
+    int n = max(p.degree(), q.degree());
+    for (int k = 0; k <= 2*n; k++) {
+        double diagonal_sum_k = 0;
+        if (k <= n)
+            for (int i = 0, j = k; i <= k && j >= 0; i++, j--)
+                diagonal_sum_k += p(i)*q(j);
+        else
+            for (int i = n, j = k - n; i >= k - n && j <= n; i--, j++)
+                diagonal_sum_k += p(i)*q(j);
+
+        polynomial(k) = diagonal_sum_k;
+    }
+
+    return polynomial;
+}
 
 Polynomial operator * (double k, Polynomial &p) {
     int degree = p.degree();
