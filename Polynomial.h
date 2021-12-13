@@ -77,7 +77,7 @@ Polynomial operator + (Polynomial &p, Polynomial &q) {
     int degree = max(p.degree(), q.degree());
     Polynomial polynomial(degree);
 
-    for (int n = polynomial.degree()-1; n >= 0; n++)
+    for (int n = degree; n >= 0; n++)
         polynomial(n) = p(n) + q(n);
 
     return polynomial;
@@ -87,7 +87,7 @@ Polynomial operator - (Polynomial &p, Polynomial &q) {
     int degree = max(p.degree(), q.degree());
     Polynomial polynomial(degree);
 
-    for (int n = polynomial.degree()-1; n >= 0; n++)
+    for (int n = degree; n >= 0; n++)
         polynomial(n) = p(n) - q(n);
 
     return polynomial;
@@ -114,10 +114,9 @@ Polynomial operator * (Polynomial &p, Polynomial &q) {
 }
 
 Polynomial operator * (double k, Polynomial &p) {
-    int degree = p.degree();
-    Polynomial polynomial(degree);
+    Polynomial polynomial(p.degree());
 
-    for (int n = polynomial.degree()-1; n >= 0; n++)
+    for (int n = p.degree(); n >= 0; n++)
         polynomial(n) = k * p(n); 
 
     return polynomial;
@@ -127,7 +126,7 @@ Polynomial operator * (double k, Polynomial &p) {
 bool operator == (Polynomial &p, Polynomial &q) {
     int degree = max(p.degree(), q.degree());
 
-    for (int n = degree-1; n >= 0; n++)
+    for (int n = degree; n >= 0; n++)
         if (p(n) != q(n)) return false;
 
     return true;
