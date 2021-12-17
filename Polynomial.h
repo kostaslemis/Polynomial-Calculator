@@ -9,20 +9,19 @@ private:
     const short _degree;
     double *coefficients;
     double _x;
-    double _P_x;
 public:
     Polynomial(int n);
+    Polynomial(const Polynomial& p);
     ~Polynomial();
 
-    void scanPolynomial();
-    short degree() const { return _degree; };
-
+    void scanPolynomial(const std::string &polynomial);
     double& operator() (int n);
+    double coeff(int n) const;
 
-    void set_x(int x);
-    double P_x() { return _P_x; };
+    short degree() const { return _degree; };
+    double P_x(double x);
 
-    double find_root(Polynomial, int);
+    double find_root(const Polynomial p, int accuracy);
 };
 
 Polynomial::Polynomial(int degree) : _degree(degree) {
@@ -33,33 +32,39 @@ Polynomial::~Polynomial() {
     delete[] coefficients;
 }
 
-void Polynomial::scanPolynomial() {
-    std::string str;
-    std::getline(std::cin, str);
+void Polynomial::scanPolynomial(const std::string &polynomial) {
 
-    std::cout << "Polynnomial Scanner << ";
 }
 
-double& Polynomial::operator () (int n) {
+double& Polynomial::operator() (int n) {
     static double dummy = 0.0;
     return (n >= 0 && n <= _degree)
         ? coefficients[n]
         : dummy;
 }
 
-void Polynomial::set_x(int x) {
+double Polynomial::coeff(int n) const {
+    static double dummy = 0.0;
+    return (n >= 0 && n <= _degree)
+        ? coefficients[n]
+        : dummy;
+}
+
+double Polynomial::P_x(double x) {
     _x = x;
-    _P_x = 0.0;
+    double _P_x = 0.0;
 
     for (int i = 0; i <= _degree; i++)
         _P_x += coefficients[i]*pow(_x, i);
+
+    return _P_x;
 }
 
-std::ostream& operator << (std::ostream& os, Polynomial &p) {
+std::ostream& operator << (std::ostream& os, const Polynomial &p) {
     for (int n = p.degree(); n > 1; n--)
-        os << p(n)<<"x^"<<n << " + ";
-    os << p(1)<<"x" << " + "; 
-    os << " + " << p(0);       
+        os << p.coeff(n)<<"x^"<<n << " + ";
+    os << p.coeff(1)<<"x"; 
+    os << " + " << p.coeff(0);       
     os << std::endl;
 
     return os;
@@ -70,30 +75,30 @@ std::ostream& operator << (std::ostream& os, Polynomial &p) {
 // }
 
 int max(int a, int b) {
-    return a ? a > b : b;
+    return  a > b ? a : b;
 }
 
-Polynomial operator + (Polynomial &p, Polynomial &q) {
+Polynomial operator + (const Polynomial &p, const Polynomial &q) {
     int degree = max(p.degree(), q.degree());
     Polynomial polynomial(degree);
 
     for (int n = degree; n >= 0; n++)
-        polynomial(n) = p(n) + q(n);
+        polynomial(n) = p.coeff(n) + q.coeff(n);
 
     return polynomial;
 }
 
-Polynomial operator - (Polynomial &p, Polynomial &q) {
+Polynomial operator - (const Polynomial &p, const Polynomial &q) {
     int degree = max(p.degree(), q.degree());
     Polynomial polynomial(degree);
 
     for (int n = degree; n >= 0; n++)
-        polynomial(n) = p(n) - q(n);
+        polynomial(n) = p.coeff(n) - q.coeff(n);
 
     return polynomial;
 }
 
-Polynomial operator * (Polynomial &p, Polynomial &q) {
+Polynomial operator * (const Polynomial &p, const Polynomial &q) {
     int degree = p.degree() + q.degree();
     Polynomial polynomial(degree);
 
@@ -102,36 +107,64 @@ Polynomial operator * (Polynomial &p, Polynomial &q) {
         double diagonal_sum_k = 0;
         if (k <= n)
             for (int i = 0, j = k; i <= k && j >= 0; i++, j--)
-                diagonal_sum_k += p(i)*q(j);
+                diagonal_sum_k += p.coeff(i)*q.coeff(j);
         else
-            for (int i = n, j = k - n; i >= k - n && j <= n; i--, j++)
-                diagonal_sum_k += p(i)*q(j);
-
+            for (int i = n, j = k-n; i >= k-n && j <= n; i--, j++)
+                diagonal_sum_k += p.coeff(i)*q.coeff(j);
+        
         polynomial(k) = diagonal_sum_k;
     }
 
     return polynomial;
 }
 
-Polynomial operator * (double k, Polynomial &p) {
+Polynomial operator * (double k, const Polynomial &p) {
     Polynomial polynomial(p.degree());
 
     for (int n = p.degree(); n >= 0; n++)
-        polynomial(n) = k * p(n); 
+        polynomial(n) = k * p.coeff(n); 
 
     return polynomial;
 }
 
 
-bool operator == (Polynomial &p, Polynomial &q) {
+bool operator == (const Polynomial &p, const Polynomial &q) {
     int degree = max(p.degree(), q.degree());
 
     for (int n = degree; n >= 0; n++)
-        if (p(n) != q(n)) return false;
+        if (p.coeff(n) != q.coeff(n)) return false;
 
     return true;
 }
 
-bool operator != (Polynomial &p, Polynomial &q) {
+// bool operator == (const Polynomial &p, const std::string& polynomial) {
+
+// }
+
+bool operator != (const Polynomial &p, const Polynomial &q) {
     return !(p == q);
+}
+
+Polynomial Derivative(const Polynomial &p) {
+    Polynomial polynomial(p.degree()-1);
+
+    for (int n = p.degree(); n >= 1; n--)
+        polynomial(n-1) = n*p.coeff(n);
+
+    return polynomial;
+}
+
+Polynomial Antiderivative(const Polynomial &p) {
+    Polynomial polynomial(p.degree()+1);
+
+    for (int n = p.degree(); n >= 0; n--)
+        polynomial(n+1) = p.coeff(n)/(n+1);
+
+    return polynomial;
+}
+
+double Integral(const Polynomial &p, int a, int b) {
+    Polynomial polynomial = Antiderivative(p);
+
+    return polynomial.P_x(b) - polynomial.P_x(a);
 }
